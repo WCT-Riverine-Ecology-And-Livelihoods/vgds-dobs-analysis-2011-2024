@@ -1,4 +1,3 @@
-#
 library(jagsUI)
 library(rjags)
 library(mcmcOutput)
@@ -93,6 +92,7 @@ beta2 ~ dnorm(0, 0.01) #for meandering channel
 beta3 ~ dnorm(0, 0.01) #for channel with islands
 
 Npop <- sum(N_realized)
+pi1 <- sum()
 }
 ", fill = TRUE, file = "vgds_dobs_wo_boatspeed.txt")
 
