@@ -4,7 +4,7 @@ library(mcmcOutput)
 library(dplyr)
 library(ggplot2)
 
-vgds_df <- read.csv("Data/vgdsMay2014_counts_rivcovs.csv")
+vgds_df <- read.csv("Data/vgdsFeb2013_counts_rivcovs.csv")
 
 vgds_df$straight_chan <- ifelse(vgds_df$channeltype == "S", 1, 0)
 vgds_df$meander_chan <- ifelse(vgds_df$channeltype == "M", 1, 0)
@@ -25,10 +25,9 @@ y <- as.matrix(vgds_df %>% select(uniq_t1, uniq_t2, comm))
 colnames(y) <- NULL
 data <- list(y = y, 
              M = nrow(vgds_df), #M - no. of sites
-             boatspeed = vgds_df$boatspeed,
+             # boatspeed = vgds_df$boatspeed,
              W = vgds_df$W, 
              G = vgds_df$G,
-             fog = vgds_df$F,
              rivwidth = vgds_df$log_rivwidth, 
              straight_chan = vgds_df$straight_chan,
              meander_chan = vgds_df$meander_chan,
@@ -39,9 +38,9 @@ model {
 for(i in 1:M){ ## loop over M - no. of sites
 # bionomial model for detection 
   logit(p[i,1]) <- alphaA0 + alpha2 * W[i] + alpha3 * G[i] +
-                   alpha4 * rivwidth[i] + alpha5 * fog[i]
+                   alpha4 * rivwidth[i] 
   logit(p[i,2]) <- alphaB0 + alpha2 * W[i] + alpha3 * G[i] +
-                   alpha4 * rivwidth[i] + alpha5 * fog[i]
+                   alpha4 * rivwidth[i] 
 
 # poisson model for abundance 
   log(lambda[i]) <- beta0 + beta1 * straight_chan[i] + beta2 * meander_chan[i] +
@@ -84,7 +83,7 @@ alphaB0 <- logit(pB0) #intercept for obs2
 alpha2 ~ dnorm(0, 0.01) #coef for wind
 alpha3 ~ dnorm(0, 0.01) #coef for glare
 alpha4 ~ dnorm(0, 0.01) #coef for river width
-alpha5 ~ dnorm(0, 0.01) #coef for fog
+# alpha5 ~ dnorm(0, 0.01) #coef for fog
 
 #abundance
 beta0 ~ dnorm(0, 0.01)
@@ -93,9 +92,8 @@ beta2 ~ dnorm(0, 0.01) #for meandering channel
 beta3 ~ dnorm(0, 0.01) #for channel with islands
 
 Npop <- sum(N_realized)
-pi1 <- sum()
 }
-", fill = TRUE, file = "vgds_dobs_wo_boatspeed.txt")
+", fill = TRUE, file = "vgds_dobs_wo_boatspeed_fog.txt")
 
 # inits <- function(){
 #   list (pA0 = runif(1), pB0 = runif(1),
@@ -106,12 +104,12 @@ pi1 <- sum()
 
 # Define parameters to save and MCMC settings
 params <- c("pA0", "pB0","alphaA0", "alphaB0", 
-            "alpha2","alpha3", "alpha4", "alpha5",
+            "alpha2","alpha3", "alpha4", 
             "beta0", "beta1", "beta2", "beta3", "Npop")
 nc <- 3 ; ni <- 11000 ; nb <- 1000 ; nt <- 1
 
 output <- jags(data, inits = NULL, params, 
-               "vgds_dobs_wo_btspeed_fog.txt", 
+               "vgds_dobs_wo_boatspeed_fog.txt", 
                n.thin = nt, n.chains = nc, n.burnin = nb, n.iter = ni)
 
 mco <- mcmcOutput(output)
