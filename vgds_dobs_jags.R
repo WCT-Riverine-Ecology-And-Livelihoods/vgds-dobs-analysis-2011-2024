@@ -4,7 +4,7 @@ library(mcmcOutput)
 library(dplyr)
 library(ggplot2)
 
-vgds_df <- read.csv("Data/vgdsDec2013_counts_rivcovs.csv")
+vgds_df <- read.csv("Data/vgdsMay2014_counts_rivcovs.csv")
 
 vgds_df$straight_chan <- ifelse(vgds_df$channeltype == "S", 1, 0)
 vgds_df$meander_chan <- ifelse(vgds_df$channeltype == "M", 1, 0)
@@ -25,6 +25,7 @@ y <- as.matrix(vgds_df %>% select(uniq_t1, uniq_t2, comm))
 colnames(y) <- NULL
 data <- list(y = y, 
              M = nrow(vgds_df), #M - no. of sites
+             boatspeed = vgds_df$boatspeed,
              W = vgds_df$W, 
              G = vgds_df$G,
              fog = vgds_df$F,
@@ -110,7 +111,7 @@ params <- c("pA0", "pB0","alphaA0", "alphaB0",
 nc <- 3 ; ni <- 11000 ; nb <- 1000 ; nt <- 1
 
 output <- jags(data, inits = NULL, params, 
-               "vgds_dobs_wo_boatspeed.txt", 
+               "vgds_dobs_wo_btspeed_fog.txt", 
                n.thin = nt, n.chains = nc, n.burnin = nb, n.iter = ni)
 
 mco <- mcmcOutput(output)
