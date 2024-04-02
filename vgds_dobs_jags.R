@@ -4,7 +4,7 @@ library(mcmcOutput)
 library(dplyr)
 library(ggplot2)
 
-vgds_df <- read.csv("Data/vgdsNov2015_counts_rivcovs.csv")
+vgds_df <- read.csv("Data/vgdsOct2016_counts_rivcovs.csv")
 
 vgds_df$straight_chan <- ifelse(vgds_df$channeltype == "S", 1, 0)
 vgds_df$meander_chan <- ifelse(vgds_df$channeltype == "M", 1, 0)
@@ -17,6 +17,7 @@ for(i in 1:nrow(vgds_df)){
 
 ##Exploratory analysis
 plot(vgds_df$total_y ~ vgds_df$boatspeed)
+plot(vgds_df$total_y ~ vgds_df$log_rivwidth)
 plot(vgds_df$total_y ~ vgds_df$W)
 plot(vgds_df$total_y ~ vgds_df$G)
 plot(vgds_df$total_y ~ vgds_df$F)
@@ -27,9 +28,9 @@ colnames(y) <- NULL
 data <- list(y = y, 
              M = nrow(vgds_df), #M - no. of sites
              boatspeed = vgds_df$boatspeed,
-             W = vgds_df$W, 
+             # W = vgds_df$W, 
              G = vgds_df$G,
-             fog = vgds_df$F,
+             # fog = vgds_df$F,
              rivwidth = vgds_df$log_rivwidth, 
              straight_chan = vgds_df$straight_chan,
              meander_chan = vgds_df$meander_chan,
@@ -39,10 +40,14 @@ cat("
 model {
 for(i in 1:M){ ## loop over M - no. of sites
 # bionomial model for detection 
-  logit(p[i,1]) <- alphaA0 + alpha1 * boatspeed[i] + alpha2 * W[i] + 
-                   alpha3 * G[i] + alpha4 * rivwidth[i] + alpha5 * fog[i]
-  logit(p[i,2]) <- alphaB0 + alpha1 * boatspeed[i] + alpha2 * W[i] + 
-                   alpha3 * G[i] + alpha4 * rivwidth[i] + alpha5 * fog[i]
+  logit(p[i,1]) <- alphaA0 + alpha1 * boatspeed[i] + 
+                   # alpha2 * W[i] + 
+                   alpha3 * G[i] + alpha4 * rivwidth[i]  
+                   # alpha5 * fog[i]
+  logit(p[i,2]) <- alphaB0 + alpha1 * boatspeed[i] + 
+                   # alpha2 * W[i] + 
+                   alpha3 * G[i] + alpha4 * rivwidth[i]  
+                   # alpha5 * fog[i]
 
 # poisson model for abundance 
   log(lambda[i]) <- beta0 + beta1 * straight_chan[i] + beta2 * meander_chan[i] +
@@ -82,10 +87,10 @@ pB0 ~ dunif(0,1)
 alphaA0 <- logit(pA0) #intercept for obs1
 alphaB0 <- logit(pB0) #intercept for obs2
 alpha1 ~ dnorm(0, 0.01) #coef for boatspeed
-alpha2 ~ dnorm(0, 0.01) #coef for wind
+# alpha2 ~ dnorm(0, 0.01) #coef for wind
 alpha3 ~ dnorm(0, 0.01) #coef for glare
 alpha4 ~ dnorm(0, 0.01) #coef for river width
-alpha5 ~ dnorm(0, 0.01) #coef for fog
+# alpha5 ~ dnorm(0, 0.01) #coef for fog
 
 #abundance
 beta0 ~ dnorm(0, 0.01)
@@ -95,7 +100,7 @@ beta3 ~ dnorm(0, 0.01) #for channel with islands
 
 Npop <- sum(N_realized)
 }
-", fill = TRUE, file = "vgds_dobs_allcovs.txt")
+", fill = TRUE, file = "vgds_dobs_wo_wind_fog.txt")
 
 # inits <- function(){
 #   list (pA0 = runif(1), pB0 = runif(1),
@@ -106,12 +111,12 @@ Npop <- sum(N_realized)
 
 # Define parameters to save and MCMC settings
 params <- c("pA0", "pB0","alphaA0", "alphaB0", 
-            "alpha1", "alpha2","alpha3", "alpha4", "alpha5", 
+            "alpha1", "alpha3", "alpha4", 
             "beta0", "beta1", "beta2", "beta3", "Npop")
 nc <- 3 ; ni <- 11000 ; nb <- 1000 ; nt <- 1
 
 output <- jags(data, inits = NULL, params, 
-               "vgds_dobs_allcovs.txt", 
+               "vgds_dobs_wo_wind_fog.txt", 
                n.thin = nt, n.chains = nc, n.burnin = nb, n.iter = ni)
 
 mco <- mcmcOutput(output)
