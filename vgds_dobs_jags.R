@@ -4,7 +4,7 @@ library(mcmcOutput)
 library(dplyr)
 library(ggplot2)
 
-vgds_df <- read.csv("Data/vgdsFeb2022_counts_rivcovs.csv")
+vgds_df <- read.csv("Data/vgdsDec2013_counts_rivcovs.csv")
 
 vgds_df$straight_chan <- ifelse(vgds_df$channeltype == "S", 1, 0)
 vgds_df$meander_chan <- ifelse(vgds_df$channeltype == "M", 1, 0)
@@ -18,19 +18,21 @@ for(i in 1:nrow(vgds_df)){
 ##Exploratory analysis
 plot(vgds_df$total_y ~ vgds_df$boatspeed)
 plot(vgds_df$total_y ~ vgds_df$log_rivwidth)
-plot(vgds_df$total_y ~ vgds_df$W)
-plot(vgds_df$total_y ~ vgds_df$G)
-plot(vgds_df$total_y ~ vgds_df$F)
+boxplot(vgds_df$total_y ~ vgds_df$W)
+boxplot(vgds_df$total_y ~ vgds_df$G)
+boxplot(vgds_df$total_y ~ vgds_df$F)
+plot(vgds_df$W ~ vgds_df$log_rivwidth) #correlation between riverwidth and wind
+
 ggplot(data = vgds_df, aes(x = channeltype, y = total_y)) + geom_boxplot()
 
 y <- as.matrix(vgds_df %>% select(uniq_t1, uniq_t2, comm))
 colnames(y) <- NULL
 data <- list(y = y, 
              M = nrow(vgds_df), #M - no. of sites
-             boatspeed = vgds_df$boatspeed,
+             # boatspeed = vgds_df$boatspeed,
              W = vgds_df$W,
              G = vgds_df$G,
-             # fog = vgds_df$F,
+             fog = vgds_df$F,
              rivwidth = vgds_df$log_rivwidth, 
              straight_chan = vgds_df$straight_chan,
              meander_chan = vgds_df$meander_chan,
