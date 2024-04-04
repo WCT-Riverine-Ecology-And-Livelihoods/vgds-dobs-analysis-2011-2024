@@ -4,7 +4,7 @@ library(mcmcOutput)
 library(dplyr)
 library(ggplot2)
 
-vgds_df <- read.csv("Data/vgdsDec2013_counts_rivcovs.csv")
+vgds_df <- read.csv("Data/vgdsOct2016_counts_rivcovs.csv")
 
 vgds_df$straight_chan <- ifelse(vgds_df$channeltype == "S", 1, 0)
 vgds_df$meander_chan <- ifelse(vgds_df$channeltype == "M", 1, 0)
@@ -29,10 +29,10 @@ y <- as.matrix(vgds_df %>% select(uniq_t1, uniq_t2, comm))
 colnames(y) <- NULL
 data <- list(y = y, 
              M = nrow(vgds_df), #M - no. of sites
-             # boatspeed = vgds_df$boatspeed,
-             W = vgds_df$W,
+             boatspeed = vgds_df$boatspeed,
+             # W = vgds_df$W,
              G = vgds_df$G,
-             fog = vgds_df$F,
+             # fog = vgds_df$F,
              rivwidth = vgds_df$log_rivwidth, 
              straight_chan = vgds_df$straight_chan,
              meander_chan = vgds_df$meander_chan,
@@ -76,13 +76,10 @@ for(i in 1:M){ ## loop over M - no. of sites
 # missed animals  
   m[i] ~ dpois(lambda[i]*(1-pcap[i]))
   
-# generate predictions of N_pred[i]  
-  N_pred[i] ~ dpois(lambda[i])
-  
 # estimated realized abundance 
   N_realized[i] <- sum(y[i,1:3], m[i])
 }
-# Prior distributions (distribution - JAGS syntax)
+# Prior distributions 
 # detection
 pA0 ~ dunif(0,1) 
 pB0 ~ dunif(0,1) 
@@ -113,12 +110,12 @@ Npop <- sum(N_realized)
 
 # Define parameters to save and MCMC settings
 params <- c("pA0", "pB0","alphaA0", "alphaB0", 
-            "alpha1", "alpha2", "alpha3", "alpha4", 
-            "beta0", "beta1", "beta2", "beta3", "Npop")
+            "alpha1", "alpha3", "alpha4", 
+            "beta0", "beta1", "beta2", "beta3", "Npop", "p")
 nc <- 3 ; ni <- 11000 ; nb <- 1000 ; nt <- 1
 
 output <- jags(data, inits = NULL, params, 
-               "vgds_dobs_wo_fog.txt", 
+               "vgds_dobs_wo_wind_fog.txt", 
                n.thin = nt, n.chains = nc, n.burnin = nb, n.iter = ni)
 
 mco <- mcmcOutput(output)
